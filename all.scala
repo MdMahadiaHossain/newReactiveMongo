@@ -171,3 +171,70 @@ class Home2Controller @Inject()( controllerComponents: MessagesControllerCompone
 
 
 }
+
+
+####################### using as ##############
+package controllers.home
+
+import play.api.mvc.BaseController
+import play.api.mvc.ControllerComponents
+import javax.inject.Singleton
+import com.google.inject.Inject
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import play.api.mvc.RequestHeader
+import play.api.mvc.AnyContent
+import play.api.mvc.Request
+import play.api.mvc.MessagesAbstractController
+import play.api.mvc.MessagesControllerComponents
+import play.api.mvc.MessagesRequest
+import play.api.mvc.Action
+import play.api.libs.json.JsValue
+import play.api.libs.json.JsObject
+import play.modules.reactivemongo.ReactiveMongoApi
+
+import models.TestDAO
+import reactivemongo.api.bson.BSONObjectID // this is necessary
+import java.{util => ju}
+import models.Man
+import reactivemongo.api.bson.BSONDocument
+import play.api.libs.json.Json
+
+
+
+
+
+
+@Singleton
+class Home2Controller @Inject()( controllerComponents: MessagesControllerComponents, testDAO:TestDAO)(implicit executionContext:ExecutionContext) extends MessagesAbstractController(controllerComponents){
+  
+    def hello2():Action[AnyContent]  = Action.async{
+        request : MessagesRequest[AnyContent] => 
+           
+           testDAO.getTransactionsOfAccount(new ju.Date(1588269600000L),new ju.Date()).map{
+               w =>
+
+
+               import models.ManBSONFormat._
+               import models.DateAndTime._
+               val x = BSONDocument("_id"->BSONObjectID.generate(),"age"-> new ju.Date())
+               
+               
+               import _root_.play.api.libs.json.__
+               import reactivemongo.play.json.compat._
+               import bson2json._
+               
+               
+
+                Ok(x.asInstanceOf[BSONDocument].as[Man].toString())
+           }
+
+      
+       
+    }
+
+
+    
+
+
+}
