@@ -87,8 +87,28 @@ class TestDAO @Inject()(reactiveMongoApi:ReactiveMongoApi)(implicit executionCon
 
     private def collection = reactiveMongoApi.database.map(_.collection[BSONCollection]("test"))
 
-    import ManBSONFormat.m
+    import ManBSONFormat._
     def insertMan(man:Man) = collection.map(_.insert(true).one[Man](man)).flatten
+  
+  
+     def getTransactionsOfAccount(dateFrom:ju.Date,dateTo:ju.Date): Future[List[BSONDocument]] = collection.map(_.aggregateWith[BSONDocument]() {
+    aggregatorFramework =>    // No super type cast
+      val obj = BSONDocument
+      import aggregatorFramework.PipelineOperator
+      PipelineOperator(obj(
+            "$match" -> obj(
+              "date" -> obj("$gte" -> dateFrom, "$lte" -> dateTo) // for date in bson document will need explicit reader and writter
+            )
+          )) -> List(
+        PipelineOperator(
+          obj(
+            "$limit" -> 6
+          )
+        )
+      )
+
+
+  }.collect[List](1, Cursor.FailOnError())(List, executionContext)).flatten
     
   
 }
